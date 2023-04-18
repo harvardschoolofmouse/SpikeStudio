@@ -1,4 +1,10 @@
 classdef TetrodeRecording < handle
+	% 
+	% 	Original TetrodeRecording class by Lingfeng Hou, branched April 5th, 2023
+	%		This version of TetrodeRecording developed by Allison Hamilos for use with SpikeSorter in SpikeStudio
+	%		Some functions may not work without additional dependencies from original repo -- tedhou/tetrode-recording
+	% 
+	% 
 	properties
 		System = ''
 		Files = []
