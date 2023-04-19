@@ -1,18 +1,16 @@
 # SpikeStudio
 Spike sorting visualization, processing and analysis tools
 
-Created: Allison Hamilos with contributions from Lingfeng Hou
-
-Modified 4/18/2023
-
-Version 0.1.2
+    Created: Allison Hamilos with contributions from Lingfeng Hou<br>
+    Modified 4/18/2023<br>
+    Version 0.1.2
 
 -------------------------
 ## Getting started:
 
 - Download or open Matlab 2023a + 
 - Clone SpikeStudio repo and add to your path. 
-    -- Note, you may also need dependencies from HSOManalysisPackages. If something doesn't work, let us know.
+    - Note, you may also need dependencies from HSOManalysisPackages. If something doesn't work, let us know.
 
 You will also need to add the following toolboxes using the Add-Ons manager:
 
