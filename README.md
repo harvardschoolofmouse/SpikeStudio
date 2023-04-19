@@ -1,7 +1,8 @@
 # SpikeStudio
 Spike sorting visualization, processing and analysis tools
-
-version 0.1.2
+    Created: Allison Hamilos with contributions from Lingfeng Hou
+    Modified 4/18/2023
+    Version 0.1.2
 
 -------------------------
 ## Getting started:
