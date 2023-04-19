@@ -22,6 +22,17 @@ You will also need to add the following toolboxes using the Add-Ons manager:
 --------------------------
 ## Automated SpikeSorting
 
+- Record behavioral session with Intan as *.rhd file. Works best as 1 min chunks.
+- Create probe channel map (example in dependencies)
 - Currently configured to take output from SpikeSorter ('*.csv')
-- Complete automated sorting using SpikeSorter
-- 
+- Complete automated sorting using SpikeSorter and export *.csv
+
+---------------------------
+## Creating a SpikeStudio session
+
+    >> obj = SpikeSorter;
+    
+- Select all the *.rhd files you wish to load. 
+    Pro-tip: make sure the files are sorted by time recorded (i.e., filename). Otherwise, files won't load in properly
+    Pro-tip2: you don't have to load all your files. You can also preview just the first few.
+- Select the processed SpikeSorter .csv file
