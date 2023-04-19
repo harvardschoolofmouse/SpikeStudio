@@ -1,8 +1,11 @@
 # SpikeStudio
 Spike sorting visualization, processing and analysis tools
-    -- Created: Allison Hamilos with contributions from Lingfeng Hou
-    -- Modified 4/18/2023
-    -- Version 0.1.2
+
+Created: Allison Hamilos with contributions from Lingfeng Hou
+
+Modified 4/18/2023
+
+Version 0.1.2
 
 -------------------------
 ## Getting started:
@@ -34,6 +37,8 @@ You will also need to add the following toolboxes using the Add-Ons manager:
     >> obj = SpikeSorter;
     
 - Select all the *.rhd files you wish to load. 
-    -- Pro-tip: make sure the files are sorted by time recorded (i.e., filename). Otherwise, files won't load in properly
-    -- Pro-tip2: you don't have to load all your files. You can also preview just the first few.
+
+    <i> Pro-tip: make sure the files are sorted by time recorded (i.e., filename). Otherwise, files won't load in properly</i>
+    
+    <i> Pro-tip2: you don't have to load all your files. You can also preview just the first few.</i>
 - Select the processed SpikeSorter .csv file
