@@ -1,15 +1,15 @@
 # SpikeStudio
 Spike sorting visualization, processing and analysis tools
-    Created: Allison Hamilos with contributions from Lingfeng Hou
-    Modified 4/18/2023
-    Version 0.1.2
+    -- Created: Allison Hamilos with contributions from Lingfeng Hou
+    -- Modified 4/18/2023
+    -- Version 0.1.2
 
 -------------------------
 ## Getting started:
 
 - Download or open Matlab 2023a + 
 - Clone SpikeStudio repo and add to your path. 
-    Note, you may also need dependencies from HSOManalysisPackages. If something doesn't work, let us know.
+    -- Note, you may also need dependencies from HSOManalysisPackages. If something doesn't work, let us know.
 
 You will also need to add the following toolboxes using the Add-Ons manager:
 
@@ -34,6 +34,6 @@ You will also need to add the following toolboxes using the Add-Ons manager:
     >> obj = SpikeSorter;
     
 - Select all the *.rhd files you wish to load. 
-    Pro-tip: make sure the files are sorted by time recorded (i.e., filename). Otherwise, files won't load in properly
-    Pro-tip2: you don't have to load all your files. You can also preview just the first few.
+    -- Pro-tip: make sure the files are sorted by time recorded (i.e., filename). Otherwise, files won't load in properly
+    -- Pro-tip2: you don't have to load all your files. You can also preview just the first few.
 - Select the processed SpikeSorter .csv file
