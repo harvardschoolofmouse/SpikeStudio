@@ -18,8 +18,8 @@ You will also need to add the following toolboxes using the Add-Ons manager:
 - Curve Fitting Toolbox 3.8
 - Image Processing Toolbox 11.6
 - Mapping Toolbox 5.4
-- Statistics and Machine Learning Textbox 12.4
 - Signal Processing Toolbox
+- Statistics and Machine Learning Textbox 12.4
 
 --------------------------
 ## Automated SpikeSorting
