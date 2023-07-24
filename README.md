@@ -4,6 +4,7 @@ Spike sorting visualization, processing and analysis tools
 > Created: Allison Hamilos with contributions from Lingfeng Hou<br>
 > Modified 4/18/2023<br>
 > Version 0.1.2
+> NB: Version 0.1.3 forthcoming for use with SpikeInterface Curated Datasets (Kilosort2.5, IronClust; Phy). @AH Needs upload from Dropbox
 
 -------------------------
 ## Getting started:
