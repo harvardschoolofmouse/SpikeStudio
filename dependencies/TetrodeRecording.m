@@ -1,5 +1,7 @@
 classdef TetrodeRecording < handle
 	% 
+	%	Modified 7/28/23 ahamilos
+	%
 	% 	Original TetrodeRecording class by Lingfeng Hou, branched April 5th, 2023
 	%		This version of TetrodeRecording developed by Allison Hamilos for use with SpikeSorter in SpikeStudio
 	%		Some functions may not work without additional dependencies from original repo -- tedhou/tetrode-recording
@@ -42,8 +44,16 @@ classdef TetrodeRecording < handle
 				obj.Files = 'mouse_yyyymmdd';
 				obj.Path = 'Z:\mouse_yyyymmdd\';
 			end
-		end
-
+        end
+        function save(tr)
+            timestamp_now = datestr(now,'yyyymmdd__HHMM');
+            savefilename = ['TetrodeRecording_' timestamp_now];
+            save([savefilename, '.mat'], 'tr', '-v7.3');
+            disp(' ')
+            disp(['(' datestr(now,'mm/dd/yyyy HH:MM AM') ') Saved TetrodeRecording Session to ' strjoin(strsplit(pwd, '\'), '/') savefilename '.mat']);
+            disp(' ')
+            disp(' ')
+        end
 		function Preview(obj, varargin)
 			p = inputParser;
 			addParameter(p, 'Duration', [300, 360], @isnumeric); % start:stop in seconds

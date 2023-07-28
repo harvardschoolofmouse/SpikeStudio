@@ -7,7 +7,7 @@ classdef SpikeStudio < TetrodeRecording
     %   "LFH" -- refers to TetrodeRecording by Lingfeng Hou (LFH)
     %   
     %   Created     ahamilos    4/11/2023
-    %   Modified    ahamilos    4/13/2023       versionCode = 'v0.2.1'
+    %   Modified    ahamilos    7/28/2023       versionCode = 'v0.2.1'
     %   Dependencies:   TetrodeRecording (by Lingfeng Hou)
     %                   cprintf Toolbox
     %                   SpikeSorter output csv files:
@@ -124,12 +124,12 @@ classdef SpikeStudio < TetrodeRecording
             obj.alert('info', '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
             % obj.save();
         end
-        function save(obj)
+        function save(ss)
             timestamp_now = datestr(now,'yyyymmdd__HHMM');
-            savefilename = [obj.iv.mousename_ '_' obj.iv.signalname_ '_' obj.iv.daynum_ '_SpikeStudio_' timestamp_now];
-            save([savefilename, '.mat'], 'obj', '-v7.3');
+            savefilename = ['SpikeStudio_' ss.iv.mousename_ '_' ss.iv.signalname_ '_' ss.iv.daynum_ '_' timestamp_now];
+            save([savefilename, '.mat'], 'ss', '-v7.3');
             disp(' ')
-            obj.alert('info', ['(' datestr(now,'mm/dd/yyyy HH:MM AM') ') Saved SpikeStudio Session to ' strjoin(strsplit(pwd, '\'), '/') savefilename '.mat']);
+            ss.alert('info', ['(' datestr(now,'mm/dd/yyyy HH:MM AM') ') Saved SpikeStudio Session to ' strjoin(strsplit(pwd, '\'), '/') savefilename '.mat']);
             disp(' ')
             disp(' ')
         end
@@ -710,8 +710,11 @@ classdef SpikeStudio < TetrodeRecording
             end
             
             reversePlotOrder(ax);
+            if ~isfield(obj.UserData, 'SpikeSorterMap') || numel(obj.UserData.SpikeSorterMap) < channelNo || isempty(obj.UserData.SpikeSorterMap(channelNo).units_onch)
+                obj.getUnitsOnChannel(channelNo, [], obj.iv.SpikeStudioAlerts);
+            end
             C = linspecer(numel(obj.UserData.SpikeSorterMap(channelNo).units_onch));
-            thisunit = find([obj.UserData.SpikeSorterMap(channelNo).units_onch] == unitNo);
+            thisunit = [obj.UserData.SpikeSorterMap(channelNo).units_onch] == unitNo;
             Color = [C(thisunit, :), 0.4];
             if ~recyclingMode
                 activeUnit = 1;
@@ -898,8 +901,44 @@ classdef SpikeStudio < TetrodeRecording
             xlim(ax, [xx(1)+stepSize, xx(2)+stepSize])
         end
         function plotWaveforms(obj,ax, unitNo, ch_idx,n_waves2plot) %xx, V, unitNo, n_waves2plot)
-            xx = obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps;
+            if isempty(ax), [~, ax] = makeStandardFigure();end
+            if nargin< 4 || isempty(ch_idx), ch_idx = 1; end
+            try
+                xx = obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps;
+            catch
+                try
+                    if ~isfield(obj.iv, 'waveformspath_')
+                        obj.alert('info', '>> SpikeStudio: select path with waveforms .mat files from SpikeInterface')
+                        obj.iv.waveformspath_ = uigetdir(pwd, 'Select waveforms folder');
+                    end
+                    % open the file with the waveform data
+                    retdir = pwd;
+                    cd(obj.iv.waveformspath_)
+                    wavefile = load(['Unit_' num2str(unitNo) '_scipy.mat']);
+                    wavestructname = fieldnames(wavefile);
+                    wavefile = eval(['wavefile.' wavestructname{1}]);
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).Channel = wavefile.Channel;
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).Unit = wavefile.Unit;
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).Sample = wavefile.Sample;
+                    noisewaveidx = isnan(obj.SpikeSorterData(unitNo).Unit.Unit);
+                    if noisewaveidx(end), noisewaveidx(end) = false;end
+                    spikewaveidx = ~isnan(obj.SpikeSorterData(unitNo).Unit.Unit);
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms = wavefile.Waveform(spikewaveidx, :);
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).NoiseWaveforms = wavefile.Waveform(noisewaveidx, :);
+                    if size(wavefile.timestamps, 1) > 1 || size(wavefile.timestamps, 2) ~= size(obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms, 2)
+                        obj.alert('achtung', '>> SpikeStudio: WARNING: @OMKAR we need to get the actual waveform times from Spike interface')
+                        obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps = linspace(-1000*size(obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms, 2)/2/30000, 1000*size(obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms, 2)/2/30000, size(obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms, 2));
+                    else
+                        obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps = wavefile.timestamps;
+                    end
+                    xx = obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps;
+                    cd(retdir)
+                catch
+                    obj.alert('achtung', ['>> SpikeStudio: Uh oh--unit #' num2str(unitNo) ' ch idx#' num2str(ch_idx) ' didn''t plot correctly...'])
+                end
+            end
             V = obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms;
+            try N = obj.SpikeSorterData(unitNo).Unit(ch_idx).NoiseWaveforms; catch obj.alert('achtung', ['>> SpikeStudio: Unable to plot noise...']),end
             if isempty(V)
                 title(ax, ['unit ', num2str(unitNo), ' n=0'])
                 return
@@ -914,16 +953,65 @@ classdef SpikeStudio < TetrodeRecording
             shuff_idx = randperm(size(V, 1));
             waves2plot = shuff_idx(1:n_waves2plot);%floor(1:shuff_idx*0.005:size(V));else,waves2plot=1:size(V,1);
             
-            
-            plot(ax, xx, V(waves2plot,:))
+            try plot(ax, xx, N(:,:), 'k'),end
+            plot(ax, xx, V(waves2plot,:), 'r')
             ll = obj.SpikeSorterData(unitNo).Unit(1).WaveformTimestamps >= -0.5 & obj.SpikeSorterData(unitNo).Unit(1).WaveformTimestamps <= 0.5;
             ylim(ax, [min(min(V(waves2plot,ll))), max(max(V(waves2plot,ll)))])
             title(ax, ['unit ', num2str(unitNo), ' n=' num2str(size(V,1))])
             ylabel(ax, 'uV')
-            xlabel(ax, 'time (s)')
+            xlabel(ax, 'time (ms)')
         end
-        function plotMeanWaveform(obj,ax, unitNo, ch_idx,C)
-            xx = obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps;
+        function plotMeanWaveform(obj,ax, unitNo, ch_idx,C,Title)
+            if nargin < 6, Title='';else, title(ax, Title);end
+            if isempty(ax), [~, ax] = makeStandardFigure;title(ax, ['Unit #' num2str(unitNo)]);end
+            try
+                xx = obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps;
+            catch
+                try
+                    if ~isfield(obj.iv, 'waveformspath_')
+                        obj.alert('info', '>> SpikeStudio: select path with waveforms .mat files from SpikeInterface')
+                        obj.iv.waveformspath_ = uigetdir(pwd, 'Select waveforms folder');
+                    end
+                    % open the file with the waveform data
+                    retdir = pwd;
+                    cd(obj.iv.waveformspath_)
+                    wavefile = load(['Unit_' num2str(unitNo) '_scipy.mat']);
+                    wavestructname = fieldnames(wavefile);
+                    wavefile = eval(['wavefile.' wavestructname{1}]);
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).Channel = wavefile.Channel;
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).Unit = wavefile.Unit;
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).Sample = wavefile.Sample;
+                    noisewaveidx = isnan(obj.SpikeSorterData(unitNo).Unit.Unit);
+                    if noisewaveidx(end), noisewaveidx(end) = false;end
+                    spikewaveidx = ~isnan(obj.SpikeSorterData(unitNo).Unit.Unit);
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms = wavefile.Waveform(spikewaveidx, :);
+                    obj.SpikeSorterData(unitNo).Unit(ch_idx).NoiseWaveforms = wavefile.Waveform(noisewaveidx, :);
+                    if size(wavefile.timestamps, 1) > 1 || size(wavefile.timestamps, 2) ~= size(obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms, 2)
+                        obj.alert('achtung', '>> SpikeStudio: WARNING: @OMKAR we need to get the actual waveform times from Spike interface')
+                        obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps = linspace(-1000*size(obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms, 2)/2/30000, 1000*size(obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms, 2)/2/30000, size(obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms, 2));
+                    else
+                        obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps = wavefile.timestamps;
+                    end
+                    xx = obj.SpikeSorterData(unitNo).Unit(ch_idx).WaveformTimestamps;
+                    cd(retdir)
+                catch
+                    obj.alert('achtung', ['>> SpikeStudio: Uh oh--unit #' num2str(unitNo) ' ch idx#' num2str(ch_idx) ' didn''t plot correctly...'])
+                    return
+                end
+            end
+            try
+                V = obj.SpikeSorterData(unitNo).Unit(ch_idx).NoiseWaveforms;
+                if isempty(V), plot(ax,nan, nan, '-', 'Color',[0,0,0],'displayname', ['NO unit #', num2str(unitNo)]), return;end
+                U = prctile(V, 95, 1);
+                L = prctile(V, 5, 1);
+                line(ax, xx, mean(V,1), 'Color', [0,0,0], 'displayname', ['unit #', num2str(unitNo)]);
+                patch(ax, [xx, xx(end:-1:1)], [L, U(end:-1:1)], [0,0,0],...
+                'FaceAlpha', 0.15, 'EdgeColor', 'none', 'handlevisibility', 'off');
+            catch
+                obj.alert('achtung', '>> SpikeStudio: Unable to plot noise!')
+            end
+
+
             V = obj.SpikeSorterData(unitNo).Unit(ch_idx).Waveforms;
             if isempty(V), plot(ax,nan, nan, '-', 'Color',C,'displayname', ['NO unit #', num2str(unitNo)]), return;end
             U = prctile(V, 95, 1);
@@ -931,9 +1019,9 @@ classdef SpikeStudio < TetrodeRecording
             line(ax, xx, mean(V,1), 'Color', C, 'displayname', ['unit #', num2str(unitNo)]);
             patch(ax, [xx, xx(end:-1:1)], [L, U(end:-1:1)], C,...
                 'FaceAlpha', 0.15, 'EdgeColor', 'none', 'handlevisibility', 'off');
-            legend(ax, 'show')
+            legend(ax, 'hide')
             ylabel(ax, 'uV')
-            xlabel(ax, 'time (s)')
+            xlabel(ax, 'time (ms)')
         end
     end
 
@@ -1024,7 +1112,7 @@ classdef SpikeStudio < TetrodeRecording
             end
         end
 
-        function plotPETH(spikes_wrt_event, ax, C, dispName, s_b4, s_post,s_per_bin)
+        function Hz = plotPETH(spikes_wrt_event, ax, C, dispName, s_b4, s_post,s_per_bin)
             % 
             % can also take firstspike_wrt_event to just plot the first event
             % this is gonna normalize to the timebase... that gives us the rate
