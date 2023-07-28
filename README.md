@@ -33,10 +33,10 @@ You will also need to add the following toolboxes using the Add-Ons manager:
 ---------------------------
 ## Analyzing a behavioral session with SpikeStudio
 
-# Initial sorting and curation:
+### Initial sorting and curation:
 0. Sort, curate and export spike data as .csv file from Omkar-Sort
 
-# Behavioral analysis:
+### Behavioral analysis:
 1. Put Spike2.mat file and text file with exclusions (exclusions_null.txt) into a runner folder. SignalName is the same name as in Spike2. Each session should have a folder and thes can be processed in a batch:
     Analysis_Folder/SignalName/MOUSENAME_SignalName_dayNo
 
@@ -70,9 +70,33 @@ You will also need to add the following toolboxes using the Add-Ons manager:
         % be sure to select all Intan files for the session STARTING FROM FILE #1
         % the obj, tr and ss objects should all be saved to your working directory. Verify this. If not, use obj.save(ss, tr) to save all before proceeding.
 
-# Visualizing units relative to timing behavior
+### Working with analysis objects:
+
+        obj: Class ESP object, which is specific to the self-timed movement task (Hamilos et al., 2021). This allows us to visualize and analyze behavior data, photometry/movement control data, optogenetics data and spike data from the same datastructure. 
+        obj.SpikeSorterData:     contains all spike times, channels and units from Omkar-Sort or SpikeSorter
+        obj.iv:                   initial variables, like mouse name, session, and file paths
+        obj.GLM:                contains all behavior and non-spike data (times of events, timeseries of photometry, etc)
+        obj.ts:                a dynamic field that has timeseries data pooled by movement time (spike, photometry, or otherwise). Is updated by calls to obj.getBinnedTimeseries or obj.getBinnedPETH
+
+        Other fields are rarely used
+
+        ss: Class SpikeStudio, a general spike analysis suite, which holds onto waveform data and interacts with TetrodeRecording
+        tr: Class TetrodeRecording, a legacy object that handles import of Intan and Blackrock data, primarily for extracting behavioral events on the timebase of the spike data
+
+### Visualizing units relative to timing behavior
 The following code will plot waveforms, spike rasters, and PETHs relative to behavioral events. It will automatically save these as .fig (Matlab figure) and .eps files (for Adobe Illustrator/Publication):
 
+        % obj.plotUnitSummary(UnitNo, Mode, seconds_before_event_to_plot, seconds_after_event_to_plot, 0.05, ss, trials_to_include, ignoreMerged);
+        %    Modes: 'cue' -- cue triggered average, trials plotted in order they occurred in session
+        %            'lick' -- lick triggered ave, licks plotted in order they occurred
+        %            'flick' -- first-lick triggered ave, trials plotted in order they occurred in session
+        %            'lamp off' -- lamp off triggered ave, as above
+        %            'clta' -- cue and lick triggered ave, as above
+        %            'cta2l' -- cue triggered ave, trials plotted in order of first-time
+        %            'lta2l' -- cue triggered ave, trials plotted in order of first-lick time
+        %
+        %
+        obj.plotUnitSummary(151, 'lta2l', 7, 3, 0.05, ss, 1:numel(obj.Intan.flick_s_wrtc), true);
 
     
    
