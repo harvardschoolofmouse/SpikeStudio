@@ -84,10 +84,12 @@ You will also need to add the following toolboxes using the Add-Ons manager:
         tr: Class TetrodeRecording, a legacy object that handles import of Intan and Blackrock data, primarily for extracting behavioral events on the timebase of the spike data
 
 ### Visualizing units relative to timing behavior
+NB: the first time spikes are visualized, you'll be prompted to select a waveforms.mat containing folder, which is an output of Omkar-Sort
+
 The following code will plot waveforms, spike rasters, and PETHs relative to behavioral events. It will automatically save these as .fig (Matlab figure) and .eps files (for Adobe Illustrator/Publication):
 
-        % obj.plotUnitSummary(UnitNo, Mode, seconds_before_event_to_plot, seconds_after_event_to_plot, 0.05, ss, trials_to_include, ignoreMerged);
-        %    Modes: 'cue' -- cue triggered average, trials plotted in order they occurred in session
+        % obj.plotUnitSummary(UnitNo, EventMode, seconds_before_event_to_plot, seconds_after_event_to_plot, s_per_PETH_bin, ss, trials_to_include, ignoreMerged);
+        %    EventModes: 'cue' -- cue triggered average, trials plotted in order they occurred in session
         %            'lick' -- lick triggered ave, licks plotted in order they occurred
         %            'flick' -- first-lick triggered ave, trials plotted in order they occurred in session
         %            'lamp off' -- lamp off triggered ave, as above
@@ -98,9 +100,29 @@ The following code will plot waveforms, spike rasters, and PETHs relative to beh
         %
         obj.plotUnitSummary(151, 'lta2l', 7, 3, 0.05, ss, 1:numel(obj.Intan.flick_s_wrtc), true);
 
-    
-   
+The following code will plot the unit raster alone:
 
+    [ax,f] = obj.plotUnitRaster(unitNo, EventMode, seconds_before_event_to_plot, seconds_after_event_to_plot, s_per_PETH_bin, ss, trials_to_include);
+
+The following code will allow you to pooled PETH by lick time:
+
+    % obj.getBinnedPETH('unitno', UnitNo, 'mode', 'custom', 'nbins', SpecifyBinEdgesAsAVectorInSeconds);
+    obj.getBinnedPETH('unitno', 151, 'mode', 'custom', 'nbins', [0,1,3.3,7,17]);
+    obj.alert('info', '>> The pooled data is saved in obj.ts.')
+
+The following code will plot the pooled PETH 
+    
+    % obj.plotESP(EventMode, WhichPoolsToPlot,GaussianSmoothingKernelIn_ms,axes)
+    obj.plotESP('lta2l', 2:3,0,gca); xlim(gca, [-3.3,3]) % plots early and rewarded trial pools' PETH if used with getBinnedPETH as above
+   
+The following example pooling will give you early and rewarded trial pools:
+
+    % get the unit's binned PETH
+    obj.getBinnedPETH('unitno', UnitN, 'mode', 'custom', 'nbins', [0,1,3.3,7,17]);
+    % extract early trials PETH
+    PETH_1sto3p3s = obj.ts.BinnedData.LTA{1, 2}; % first-lick time: 1-3.3s
+    % extract rewarded trials PETH
+    PETH_3p3sto7s = obj.ts.BinnedData.LTA{1, 3}; % first-lick time: 3.3s-7
 
 
 ---------------------------
