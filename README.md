@@ -3,8 +3,8 @@ Spike sorting visualization, processing and analysis tools
 
 > Created: Allison Hamilos with contributions from Lingfeng Hou<br>
 > Modified 7/28/2023<br>
-> Version 0.1.3 -- for use with Intan | SpikeInterface Curated Datasets (Kilosort2.5, IronClust; Phy). 
-> NB: Version 0.1.4 forthcoming @AH Needs upload from Dropbox
+> Version 1.0.3 -- for use with Intan | SpikeInterface Curated Datasets (Kilosort2.5, IronClust; Phy). 
+> NB: Version 1.0.4 forthcoming @AH Needs upload from Dropbox
 
 -------------------------
 ## Getting started:
